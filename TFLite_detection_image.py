@@ -174,7 +174,7 @@ while True:
 # Loop over every image and perform detection
     if  GPIO.event_detected(button_pin):
           #  camera.capture('/home/pi/tflite_project/images/images%s.jpg' %(i))
-            img=cv2.imread('/home/pi/tflite_project/images/image%s.jpg' %(i))+cv2.imread('/home/pi/tflite_project/images/image%s.jpeg' %(i))
+            img=cv2.imread('/home/pi/tflite_project/images/images%s.jpg' %(i))+cv2.imread('/home/pi/tflite_project/images/images%s.jpeg' %(i))
             image.append(img)
          #  img=cv2.rotate(image[i],cv2.ROTATE_180)
           # cv2.imwrite('/home/pi/tflite_project/images/image%s.jpg' %(i), image[i])
