@@ -1,0 +1,10 @@
+apple: 28
+aubergine:7
+banana:7
+broccoli:5
+carrot:28
+lemon:21
+onion:90
+orange:28
+pepper:14
+tomato:3

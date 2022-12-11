@@ -25,14 +25,7 @@ from picamera import PiCamera
 from time import sleep
 import RPi.GPIO as GPIO
 import signal
-
-button_pin=27
-image =[]
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(button_pin,GPIO.IN,pull_up_down=GPIO.PUD_UP)
-GPIO.add_event_detect(button_pin,GPIO.FALLING,bouncetime=100)
-#camera=PiCamera() 
-i=0
+from listcomparison import listcompare
 
 # Define and parse input arguments
 parser = argparse.ArgumentParser()
@@ -170,20 +163,41 @@ if ('StatefulPartitionedCall' in outname): # This is a TF2 model
 else: # This is a TF1 model
     boxes_idx, classes_idx, scores_idx = 0, 1, 2
 
+######
+#initilisation of camera
+camera=PiCamera() 
+#initilisation of switch 
+button_pin=27
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(button_pin,GPIO.IN,pull_up_down=GPIO.PUD_UP)
+GPIO.add_event_detect(button_pin,GPIO.FALLING,bouncetime=100)
+#i=0 # loop iterator for the switching function
+
+#dictionaries to be used
+FridgeOld=dict() #dictionary to hold the old list
+FridgeNew=dict() #dictionary to hold the updated list
+var=5 #how much variation is allowed from the central point for item tracking
+
+#Recommended use days of each fruit are read from the text file and assigned to a dictionary
+ExpirationDays = {}
+file = open("ExpirationDays.txt",'r')
+for line in file:
+    key, value = line.split(':')
+    ExpirationDays[key] = (int) (value)
+
+ #MAIN LOOP   
 while True:
 # Loop over every image and perform detection
     if  GPIO.event_detected(button_pin):
-          #  camera.capture('/home/pi/tflite_project/images/images%s.jpg' %(i))
-            img=cv2.imread('/home/pi/Project/Smart-Fridge/images/images%s.jpeg' %(i))
-            image.append(img)
+            camera.capture('/home/pi/tflite_project/images/image.jpg')
+            image=cv2.imread('/home/pi/Project/Smart-Fridge/images/image.jpg')
          #  img=cv2.rotate(image[i],cv2.ROTATE_180)
-          # cv2.imwrite('/home/pi/tflite_project/images/image%s.jpg' %(i), image[i])
-            print(i)
+         # cv2.imwrite('/home/pi/tflite_project/images/image%s.jpg' %(i), image[i])
 
     # Load image and resize to expected shape [1xHxWx3]
             
-            image_rgb = cv2.cvtColor(image[i], cv2.COLOR_BGR2RGB)
-            imH, imW, _ =image[i].shape 
+            image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            imH, imW, _ =image.shape 
             image_resized = cv2.resize(image_rgb, (width, height))
             input_data = np.expand_dims(image_resized, axis=0)
         
@@ -213,26 +227,28 @@ while True:
                     ymax = int(min(imH,(boxes[m][2] * imH)))
                     xmax = int(min(imW,(boxes[m][3] * imW)))
                     
-                    cv2.rectangle(image[i], (xmin,ymin), (xmax,ymax), (10, 255, 0), 2)
+                    cv2.rectangle(image, (xmin,ymin), (xmax,ymax), (10, 255, 0), 2)
         
                     # Draw label
                     object_name = labels[int(classes[m])] # Look up object name from "labels" array using class index
                     label = '%s: %d%%' % (object_name, int(scores[m]*100)) # Example: 'person: 72%'
                     labelSize, baseLine = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2) # Get font size
                     label_ymin = max(ymin, labelSize[1] + 10) # Make sure not to draw label too close to top of window
-                    cv2.rectangle(image[i], (xmin, label_ymin-labelSize[1]-10), (xmin+labelSize[0], label_ymin+baseLine-10), (255, 255, 255), cv2.FILLED) # Draw white box to put label text in
-                    cv2.putText(image[i], label, (xmin, label_ymin-7), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2) # Draw label text
+                    cv2.rectangle(image, (xmin, label_ymin-labelSize[1]-10), (xmin+labelSize[0], label_ymin+baseLine-10), (255, 255, 255), cv2.FILLED) # Draw white box to put label text in
+                    cv2.putText(image, label, (xmin, label_ymin-7), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2) # Draw label text
+                    centerx=((xmax-xmin)/2)
+                    centery=((ymax-ymin)/2)
         
-                    detections.append([object_name, scores[m], xmin, ymin, xmax, ymax])
+                    detections.append([object_name, centerx, centery, scores[m], xmin, ymin, xmax, ymax])
         
             # All the results have been drawn on the image, now display the image
             if show_results:
-                cv2.imshow('Object detector', image[i])
+                cv2.imshow('Object detector', image)
         
             # Save the labeled image to results folder if desired
             if save_results:
                 # Get filenames and paths
-                image_fn ="images%s.jpg" %i
+                image_fn ="image.jpg" 
                 image_savepath = os.path.join(CWD_PATH,RESULTS_DIR,image_fn)
                 
                 base_fn, ext = os.path.splitext(image_fn)
@@ -240,18 +256,19 @@ while True:
                 txt_savepath = os.path.join(CWD_PATH,RESULTS_DIR,txt_result_fn)
         
                 # Save image
-                cv2.imwrite(image_savepath, image[i])
+                cv2.imwrite(image_savepath, image)
         
                 # Write results to text file
                 # (Using format defined by https://github.com/Cartucho/mAP, which will make it easy to calculate mAP)
                 with open(txt_savepath,'w') as f:
                     for detection in detections:
-                        f.write('%s %.4f %d %d %d %d\n' % (detection[0], detection[1], detection[2], detection[3], detection[4], detection[5]))
-            i+=1
-            # Press any key to continue to next image, or press 'q' to quit
-            #if cv2.waitKey(0) == ord('q'):
-               # break
-
+                        f.write('%s %d %d %.4f %d %d %d %d\n' % (detection[0], detection[1], detection[2], detection[3], detection[4], detection[5],detection[6], detection[7]))
+            #i+=1 to be used while reading multiple images
+            
+            
+            FridgeOld=FridgeNew.copy()
+            FridgeNew={}
+            listcompare(FridgeOld, FridgeNew, detections, var, ExpirationDays)
 
 # Clean up
 cv2.destroyAllWindows()
