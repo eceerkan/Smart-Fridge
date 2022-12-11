@@ -56,9 +56,14 @@ print(ExpirationDays)
 
 
 FridgeNew=dict()
-detected= [['apple',2,1],['apple', 4,3], ['onion', 5,7], ['carrot', 2,4]] 
+detected= [['apple',2,1],['banana', 4,3], ['onion', 5,7], ['carrot', 2,4]] 
 
 
 listcompare (FridgeOld, FridgeNew, detected, var, ExpirationDays)  
 
-print(FridgeNew)
+
+with open("FridgeContents.txt",'w') as f:
+    for key, value in FridgeNew.items(): 
+        f.write('%s:%s\n' % (key, value))
+ 
+f.close()

@@ -258,17 +258,16 @@ while True:
                 # Save image
                 cv2.imwrite(image_savepath, image)
         
+                FridgeOld=FridgeNew.copy()
+                FridgeNew={}
+                listcompare(FridgeOld, FridgeNew, detections, var, ExpirationDays)
+                
                 # Write results to text file
-                # (Using format defined by https://github.com/Cartucho/mAP, which will make it easy to calculate mAP)
-                with open(txt_savepath,'w') as f:
-                    for detection in detections:
-                        f.write('%s %d %d %.4f %d %d %d %d\n' % (detection[0], detection[1], detection[2], detection[3], detection[4], detection[5],detection[6], detection[7]))
-            #i+=1 to be used while reading multiple images
-            
-            
-            FridgeOld=FridgeNew.copy()
-            FridgeNew={}
-            listcompare(FridgeOld, FridgeNew, detections, var, ExpirationDays)
+                with open("FridgeContents.txt",'w') as f:
+                    for key, value in FridgeNew.items(): 
+                        f.write('%s:%s\n' % (key, value))
+                f.close()
 
+            #i+=1 to be used while reading multiple images
 # Clean up
 cv2.destroyAllWindows()
