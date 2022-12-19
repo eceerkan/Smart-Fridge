@@ -176,7 +176,7 @@ GPIO.add_event_detect(button_pin,GPIO.FALLING,bouncetime=100)
 #dictionaries to be used
 FridgeOld=dict() #dictionary to hold the old list
 FridgeNew=dict() #dictionary to hold the updated list
-var=5 #how much variation is allowed from the central point for item tracking
+var=20 #how much variation is allowed from the central point for item tracking
 
 #Recommended use days of each fruit are read from the text file and assigned to a dictionary
 ExpirationDays = {}
@@ -185,17 +185,16 @@ for line in file:
     key, value = line.split(':')
     ExpirationDays[key] = (int) (value)
 
+i=0
  #MAIN LOOP   
 while True:
 # Loop over every image and perform detection
     if  GPIO.event_detected(button_pin):
-            camera.capture('/home/pi/tflite_project/images/image.jpg')
+            camera.capture('/home/pi/Project/Smart-Fridge/images/image.jpg')
             image=cv2.imread('/home/pi/Project/Smart-Fridge/images/image.jpg')
          #  img=cv2.rotate(image[i],cv2.ROTATE_180)
          # cv2.imwrite('/home/pi/tflite_project/images/image%s.jpg' %(i), image[i])
-
-    # Load image and resize to expected shape [1xHxWx3]
-            
+    # Load image and resize to expected shape [1xHxWx3]            
             image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             imH, imW, _ =image.shape 
             image_resized = cv2.resize(image_rgb, (width, height))
@@ -257,9 +256,11 @@ while True:
         
                 # Save image
                 cv2.imwrite(image_savepath, image)
-        
+                with open(txt_savepath,'w') as f:
+                                for detection in detections:
+                                    f.write('%s %d %d %.4f %d %d %d %d\n' % (detection[0], detection[1], detection[2], detection[3], detection[4], detection[5],detection[6],detection[7]))        
                 FridgeOld=FridgeNew.copy()
-                FridgeNew={}
+                FridgeNew.clear()
                 listcompare(FridgeOld, FridgeNew, detections, var, ExpirationDays)
                 
                 # Write results to text file
@@ -267,7 +268,5 @@ while True:
                     for key, value in FridgeNew.items(): 
                         f.write('%s:%s\n' % (key, value))
                 f.close()
-
-            #i+=1 to be used while reading multiple images
 # Clean up
 cv2.destroyAllWindows()
