@@ -21,8 +21,8 @@ contents = repo.get_contents("transfer.txt")
 count = int(contents.decoded_content)
 
 while True:
-	if  GPIO.event_detected(button_pin):
-        	count += 1
-               	repo.update_file(contents.path, "Updated count", str(count), contents.sha)
-		contents = repo.get_contents("transfer.txt")
-	  	print(contents)
+  if  GPIO.event_detected(button_pin):
+    count += 1
+    repo.update_file(contents.path, "Updated count", str(count), contents.sha)
+    contents = repo.get_contents("transfer.txt")
+    print(contents)
