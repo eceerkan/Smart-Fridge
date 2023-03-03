@@ -261,7 +261,7 @@ while True:
                 with open("FridgeContents.txt",'w') as f:
                     for key, value in FridgeNew.items(): 
                         f.write('%s:%s\n' % (key, value))
-                        repo.update_file(contents.path, "Updated list", f"{contents.path}{key,value}", contents.sha)
+                        repo.update_file(contents.path, "Updated list", f"{key,value}+\n ", contents.sha)
                 f.close()
 
 # Clean up
