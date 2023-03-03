@@ -192,6 +192,7 @@ i=0
 while True:
 # Loop over every image and perform detection
     if  GPIO.event_detected(button_pin):
+            print(i+1)
             #retrive github text file data which is the up-to-date website information 
             g = Github("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")
             repo = g.get_repo("eceerkan/Smart-Fridge")
