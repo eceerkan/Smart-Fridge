@@ -1,3 +1,4 @@
+
 ######## Webcam Object Detection Using Tensorflow-trained Classifier #########
 #
 # Author: Evan Juras
@@ -26,6 +27,7 @@ from time import sleep
 import RPi.GPIO as GPIO
 import signal
 from listcomparison import listcompare
+from github import Github
 
 # Define and parse input arguments
 parser = argparse.ArgumentParser()
@@ -190,11 +192,17 @@ i=0
 while True:
 # Loop over every image and perform detection
     if  GPIO.event_detected(button_pin):
+            #retrive github text file data which is the up-to-date website information 
+            g = Github("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")
+            repo = g.get_repo("eceerkan/Smart-Fridge")
+            contents = repo.get_contents("FridgeContents.txt")
+            #content = contents.decoded_content
+
             camera.capture('/home/pi/Project/Smart-Fridge/images/image.jpg')
             image=cv2.imread('/home/pi/Project/Smart-Fridge/images/image.jpg')
-         #  img=cv2.rotate(image[i],cv2.ROTATE_180)
-         # cv2.imwrite('/home/pi/tflite_project/images/image%s.jpg' %(i), image[i])
-    # Load image and resize to expected shape [1xHxWx3]            
+            # img=cv2.rotate(image[i],cv2.ROTATE_180)
+            #cv2.imwrite('/home/pi/tflite_project/images/image%s.jpg' %(i), image[i])
+            #Load image and resize to expected shape [1xHxWx3]            
             image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             imH, imW, _ =image.shape 
             image_resized = cv2.resize(image_rgb, (width, height))
@@ -267,6 +275,8 @@ while True:
                 with open("FridgeContents.txt",'w') as f:
                     for key, value in FridgeNew.items(): 
                         f.write('%s:%s\n' % (key, value))
+                        repo.update_file(contents.path, "Updated list", f"{contents.path}{key,value}", contents.sha)
                 f.close()
+
 # Clean up
 cv2.destroyAllWindows()
