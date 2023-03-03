@@ -1,1 +1,1 @@
-FridgeContents.txt('aubergine', [[113.0, 116.5, 10, 3]])
+FridgeContents.txt('aubergine', [[82.5, 40.0, 10, 3]])
