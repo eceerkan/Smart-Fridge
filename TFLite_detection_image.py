@@ -259,7 +259,7 @@ while True:
                 listcompare(FridgeOld, FridgeNew, detections, var, ExpirationDays)
 
 	    # Write results to text file
-	    json_str = json.dumps(FridgeNew)
-	    repo.update_file("FridgeContents.txt", "Updated list", json_str)
+                json_str = json.dumps(FridgeNew)
+                repo.update_file("FridgeContents.txt", "Updated list", json_str)
 # Clean up
 cv2.destroyAllWindows()
