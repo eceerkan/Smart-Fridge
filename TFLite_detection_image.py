@@ -181,7 +181,7 @@ while True:
             print(i+1)
             #retrive github text file data which is the up-to-date website information 
             g = Github("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")
-            repo = g.get_repo("eceerkan/Smart-Fridge")
+            repo = g.get_repo("eceerkan/Smart-Fridge-Website")
             #contents = repo.get_contents("FridgeContents.txt")
             #content = contents.decoded_content
 
@@ -260,6 +260,6 @@ while True:
 
 	    # Write results to text file
                 json_str = json.dumps(FridgeNew)
-                repo.update_file("FridgeContents.txt", "Updated list", json_str)
+                repo.update_file("FridgeContents.json", "Updated list", json_str)
 # Clean up
 cv2.destroyAllWindows()
