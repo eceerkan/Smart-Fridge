@@ -8,14 +8,13 @@ sys.path.append('/usr/lib/python3/dist-packages')
 import glob
 import importlib.util
 from picamera import PiCamera
-from time import sleep
 import RPi.GPIO as GPIO
-import signal
-from listcomparison import listcompare
 from github import Github
 import json
+#custom function to compare two lists
+from listcomparison import listcompare
 
-# Define and parse input arguments
+# Define and parse input arguments- to be used on the Raspberry Pi terminal
 parser = argparse.ArgumentParser()
 parser.add_argument('--modeldir', help='Folder the .tflite file is located in',
                     required=True)
@@ -63,8 +62,6 @@ if (not IM_NAME and not IM_DIR):
     IM_NAME = 'test1.jpg'
 
 # Import TensorFlow libraries
-# If tflite_runtime is installed, import interpreter from tflite_runtime, else import from regular tensorflow
-# If using Coral Edge TPU, import the load_delegate library
 pkg = importlib.util.find_spec('tflite_runtime')
 if pkg:
     from tflite_runtime.interpreter import Interpreter
@@ -151,44 +148,50 @@ if ('StatefulPartitionedCall' in outname): # This is a TF2 model
 else: # This is a TF1 model
     boxes_idx, classes_idx, scores_idx = 0, 1, 2
 
-######
-#initilisation of camera
+#########
+    
+# Initilise the camera
 camera=PiCamera() 
-#initilisation of switch 
+
+# Initilise the switch with debouncing enabled
 button_pin=27
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(button_pin,GPIO.IN,pull_up_down=GPIO.PUD_UP)
 GPIO.add_event_detect(button_pin,GPIO.FALLING,bouncetime=100)
-#i=0 # loop iterator for the switching function
 
-#dictionaries to be used
+
+
+# Dictionaries
 FridgeOld=dict() #dictionary to hold the old list
 FridgeNew=dict() #dictionary to hold the updated list
-var=20 #how much variation is allowed from the central point for item tracking
 
-#Recommended use days of each fruit are read from the text file and assigned to a dictionary
+# How much variation is allowed from the central point for item tracking
+var=20 
+
+# Read the recommended expiration days of each fruit/vegetable from "ExpirationDays.txt" and assign to a dictionary
 ExpirationDays = {}
 file = open("ExpirationDays.txt",'r')
 for line in file:
     key, value = line.split(':')
     ExpirationDays[key] = (int) (value)
 
+# Loop iterator for the switching function
 i=0
- #MAIN LOOP   
+
+# MAIN LOOP   
 while True:
-# Loop over every image and perform detection
+# Loop over every image and perform object detection
     if  GPIO.event_detected(button_pin):
             print(i+1)
-            #retrive github text file data which is the up-to-date website information 
-            g = Github("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")
+            # Retrive "FridgeContents.json" which holds the website contents 
+            PAT="xxx" #Githubh personal access token (PAT)
+            g = Github(PAT)
             repo = g.get_repo("eceerkan/Smart-Fridge-Website")
             contents = repo.get_contents("FridgeContents.json")
             #content = contents.decoded_content
 
             camera.capture('/home/pi/Project/Smart-Fridge/images/image.jpg')
             image=cv2.imread('/home/pi/Project/Smart-Fridge/images/image.jpg')
-            # img=cv2.rotate(image[i],cv2.ROTATE_180)
-            #cv2.imwrite('/home/pi/tflite_project/images/image%s.jpg' %(i), image[i])
             #Load image and resize to expected shape [1xHxWx3]
             image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             imH, imW, _ =image.shape 
@@ -199,7 +202,7 @@ while True:
             if floating_model:
                 input_data = (np.float32(input_data) - input_mean) / input_std
         
-            # Perform the actual detection by running the model with the image as input
+            # Perform the object detection by running the model with the image as input
             interpreter.set_tensor(input_details[0]['index'],input_data)
             interpreter.invoke()
         
@@ -235,11 +238,7 @@ while True:
         
                     detections.append([object_name, centerx, centery, scores[m], xmin, ymin, xmax, ymax])
         
-            # All the results have been drawn on the image, now display the image
-            if show_results:
-                cv2.imshow('Object detector', image)
-        
-            # Save the labeled image to results folder if desired
+            # Save the labeled image to results folder
             if save_results:
                 # Get filenames and paths
                 image_fn ="image.jpg" 
@@ -254,11 +253,12 @@ while True:
                 with open(txt_savepath,'w') as f:
                                 for detection in detections:
                                     f.write('%s %d %d %.4f %d %d %d %d\n' % (detection[0], detection[1], detection[2], detection[3], detection[4], detection[5],detection[6],detection[7]))        
+                
                 FridgeOld=FridgeNew.copy()
                 FridgeNew.clear()
                 listcompare(FridgeOld, FridgeNew, detections, var, ExpirationDays)
 
-	    # Write results to text file
+	    # Write results to "FridgeContents.json" 
                 json_str = json.dumps(FridgeNew)
                 repo.update_file("FridgeContents.json", "Updated list", json_str,contents.sha)
 # Clean up
