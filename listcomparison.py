@@ -1,5 +1,5 @@
 
-#switch activated, new is copied to old and new is emptied old=new.copy()
+# List comparison function that gets called with each triggering of the camera
 
 from datetime import date, timedelta
 
