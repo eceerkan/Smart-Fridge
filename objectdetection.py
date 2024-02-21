@@ -184,11 +184,8 @@ while True:
     if  GPIO.event_detected(button_pin):
             print(i+1)
             # Retrive "FridgeContents.json" which holds the website contents 
-            PAT="xxx" #Githubh personal access token (PAT)
-            g = Github(PAT)
-            repo = g.get_repo("eceerkan/Smart-Fridge-Website")
-            contents = repo.get_contents("FridgeContents.json")
-            #content = contents.decoded_content
+            json_str = f.read("FridgeContents.json")
+            FridgeOld = json.loads(json_str)
 
             camera.capture('/home/pi/Project/Smart-Fridge/images/image.jpg')
             image=cv2.imread('/home/pi/Project/Smart-Fridge/images/image.jpg')
@@ -260,6 +257,6 @@ while True:
 
 	    # Write results to "FridgeContents.json" 
                 json_str = json.dumps(FridgeNew)
-                repo.update_file("FridgeContents.json", "Updated list", json_str,contents.sha)
+                f.write("FridgeContents.json", json_str)
 # Clean up
 cv2.destroyAllWindows()

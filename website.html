@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Smart Fridge</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
+    <style>
+      table tr:not(:first-child){
+          cursor: pointer;transition: all .25s ease-in-out;
+      }
+      table tr:not(:first-child):hover{background-color: #ddd;}
+  </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Smart Fridge</h1>
+
+        Item:<input type="text" name="item" id="item"><br><br>
+        Day:<input type="text" name="day" id="day"><br><br>
+        Month:<input type="text" name="month" id="month"><br><br>
+        <button onclick="editRow();">Edit Row</button><br><br>
+        
+        <table id="table" border="1">
+
+        <tr>
+          <th>Item</th>
+          <th>Day</th>
+          <th>Month</th>
+        </tr>
+        {% for key, value in data.items() %}
+        <tr>
+          <td class="item-box">
+            <span  data-column="item" data-value="{{ key }}">{{ key }}</span>
+          </td>
+          <td class="day-box">
+            <span  data-column="day" data-value="{{ value[0][2] }}">{{ value[0][2] }}</span>
+          </td>
+          <td class="month-box">
+            <span  data-column="month" data-value="{{ value[0][3] }}">{{ value[0][3] }}</span>
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+    <script> 
+      var table = document.getElementById("table"), rIndex;
+      
+      for(var i = 1; i < table.rows.length; i++) {
+          table.rows[i].onclick = function() {
+              rIndex = this.rowIndex;
+              console.log(rIndex);
+  
+              document.getElementById("item").value = this.cells[0].querySelector('span').innerHTML;
+              document.getElementById("day").value = this.cells[1].querySelector('span').innerHTML;
+              document.getElementById("month").value = this.cells[2].querySelector('span').innerHTML;
+          };
+      }
+      
+      function editRow() {
+            var data = {
+              item: document.getElementById("item").value,
+              day: document.getElementById("day").value,
+              month: document.getElementById("month").value,
+              old_item: table.rows[rIndex].cells[0].querySelector('span').dataset.value,
+              old_day: table.rows[rIndex].cells[1].querySelector('span').dataset.value,
+              old_month: table.rows[rIndex].cells[2].querySelector('span').dataset.value
+          };
+  
+          fetch('/update', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(data)
+})
+.then(response => response.json())
+.then(data => {
+  // update the table with the new data
+  table.rows[rIndex].cells[0].innerHTML = document.getElementById("item").value;
+  table.rows[rIndex].cells[1].innerHTML = document.getElementById("day").value;
+  table.rows[rIndex].cells[2].innerHTML = '<span>' + document.getElementById("month").value + '</span>';
+})
+.catch(error => console.error('Error:', error));
+
+          
+            }        
+  </script>
+  
+</body>
+</html>
+
+
