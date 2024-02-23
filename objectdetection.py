@@ -184,8 +184,8 @@ while True:
     if  GPIO.event_detected(button_pin):
             print(i+1)
             # Retrive "FridgeContents.json" which holds the website contents 
-            json_str = f.read("FridgeContents.json")
-            FridgeOld = json.loads(json_str)
+            with open ('FridgeContents.json', 'r') as json_str
+            	FridgeOld = json.loads(json_str)
 
             camera.capture('/home/pi/Project/Smart-Fridge/images/image.jpg')
             image=cv2.imread('/home/pi/Project/Smart-Fridge/images/image.jpg')
@@ -255,8 +255,9 @@ while True:
                 FridgeNew.clear()
                 listcompare(FridgeOld, FridgeNew, detections, var, ExpirationDays)
 
-	    # Write results to "FridgeContents.json" 
-                json_str = json.dumps(FridgeNew)
-                f.write("FridgeContents.json", json_str)
+	    	# Write results to "FridgeContents.json" 
+                with open ('FridgeContents.json', 'r') as json_str
+            		FridgeNew = json.loads(json_str)
+                	
 # Clean up
 cv2.destroyAllWindows()
