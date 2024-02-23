@@ -236,7 +236,7 @@ while True:
                     detections.append([object_name, centerx, centery, scores[m], xmin, ymin, xmax, ymax])
         
             # Save the labeled image to results folder
-            if save_results:
+           if save_results:
                 # Get filenames and paths
                 image_fn ="image.jpg" 
                 image_savepath = os.path.join(CWD_PATH,RESULTS_DIR,image_fn)
@@ -248,8 +248,8 @@ while True:
                 # Save image
                 cv2.imwrite(image_savepath, image)
                 with open(txt_savepath,'w') as f:
-                                for detection in detections:
-                                    f.write('%s %d %d %.4f %d %d %d %d\n' % (detection[0], detection[1], detection[2], detection[3], detection[4], detection[5],detection[6],detection[7]))        
+                    for detection in detections:
+                        f.write('%s %d %d %.4f %d %d %d %d\n' % (detection[0], detection[1], detection[2], detection[3], detection[4], detection[5],detection[6],detection[7]))        
                 
                 FridgeOld=FridgeNew.copy()
                 FridgeNew.clear()
