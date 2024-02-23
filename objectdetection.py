@@ -13,7 +13,7 @@ from github import Github
 import json
 #custom function to compare two lists
 from listcomparison import listcompare
-
+    
 # Define and parse input arguments- to be used on the Raspberry Pi terminal
 parser = argparse.ArgumentParser()
 parser.add_argument('--modeldir', help='Folder the .tflite file is located in',
@@ -175,89 +175,89 @@ for line in file:
     key, value = line.split(':')
     ExpirationDays[key] = (int) (value)
 
-# Loop iterator for the switching function
-i=0
+
 
 # MAIN LOOP   
 while True:
+    
 # Loop over every image and perform object detection
-    if  GPIO.event_detected(button_pin):
-            print(i+1)
-            # Retrive "FridgeContents.json" which holds the website contents 
-            with open ('FridgeContents.json', 'r') as json_str
-            	FridgeOld = json.loads(json_str)
+	if  GPIO.event_detected(button_pin):
+		
+		# Retrive "FridgeContents.json" which holds the website contents 
+		with open ('FridgeContents.json', 'r') as json_str:
+			FridgeOld = json.loads(json_str)
 
-            camera.capture('/home/pi/Project/Smart-Fridge/images/image.jpg')
-            image=cv2.imread('/home/pi/Project/Smart-Fridge/images/image.jpg')
-            #Load image and resize to expected shape [1xHxWx3]
-            image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            imH, imW, _ =image.shape 
-            image_resized = cv2.resize(image_rgb, (width, height))
-            input_data = np.expand_dims(image_resized, axis=0)
-        
-            # Normalize pixel values if using a floating model (i.e. if model is non-quantized)
-            if floating_model:
-                input_data = (np.float32(input_data) - input_mean) / input_std
-        
-            # Perform the object detection by running the model with the image as input
-            interpreter.set_tensor(input_details[0]['index'],input_data)
-            interpreter.invoke()
-        
-            # Retrieve detection results
-            boxes = interpreter.get_tensor(output_details[boxes_idx]['index'])[0] # Bounding box coordinates of detected objects
-            classes = interpreter.get_tensor(output_details[classes_idx]['index'])[0] # Class index of detected objects
-            scores = interpreter.get_tensor(output_details[scores_idx]['index'])[0] # Confidence of detected objects
-        
-            detections = []
-        
-            # Loop over all detections and draw detection box if confidence is above minimum threshold
-            for m in range(len(scores)):
-                if ((scores[m] > min_conf_threshold) and (scores[m] <= 1.0)):
-        
-                    # Get bounding box coordinates and draw box
-                    # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
-                    ymin = int(max(1,(boxes[m][0] * imH)))
-                    xmin = int(max(1,(boxes[m][1] * imW)))
-                    ymax = int(min(imH,(boxes[m][2] * imH)))
-                    xmax = int(min(imW,(boxes[m][3] * imW)))
-                    
-                    cv2.rectangle(image, (xmin,ymin), (xmax,ymax), (10, 255, 0), 2)
-        
-                    # Draw label
-                    object_name = labels[int(classes[m])] # Look up object name from "labels" array using class index
-                    label = '%s: %d%%' % (object_name, int(scores[m]*100)) # Example: 'person: 72%'
-                    labelSize, baseLine = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2) # Get font size
-                    label_ymin = max(ymin, labelSize[1] + 10) # Make sure not to draw label too close to top of window
-                    cv2.rectangle(image, (xmin, label_ymin-labelSize[1]-10), (xmin+labelSize[0], label_ymin+baseLine-10), (255, 255, 255), cv2.FILLED) # Draw white box to put label text in
-                    cv2.putText(image, label, (xmin, label_ymin-7), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2) # Draw label text
-                    centerx=((xmax-xmin)/2)
-                    centery=((ymax-ymin)/2)
-        
-                    detections.append([object_name, centerx, centery, scores[m], xmin, ymin, xmax, ymax])
-        
-            # Save the labeled image to results folder
-           if save_results:
-                # Get filenames and paths
-                image_fn ="image.jpg" 
-                image_savepath = os.path.join(CWD_PATH,RESULTS_DIR,image_fn)
-                
-                base_fn, ext = os.path.splitext(image_fn)
-                txt_result_fn = base_fn+'.txt'
-                txt_savepath = os.path.join(CWD_PATH,RESULTS_DIR,txt_result_fn)
-        
-                # Save image
-                cv2.imwrite(image_savepath, image)
-                with open(txt_savepath,'w') as f:
-                    for detection in detections:
-                        f.write('%s %d %d %.4f %d %d %d %d\n' % (detection[0], detection[1], detection[2], detection[3], detection[4], detection[5],detection[6],detection[7]))        
-                
-                FridgeOld=FridgeNew.copy()
-                FridgeNew.clear()
-                listcompare(FridgeOld, FridgeNew, detections, var, ExpirationDays)
+		camera.capture('/home/pi/Project/Smart-Fridge/images/image.jpg')
+		image=cv2.imread('/home/pi/Project/Smart-Fridge/images/image.jpg')
+		#Load image and resize to expected shape [1xHxWx3]
+		image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+		imH, imW, _ =image.shape 
+		image_resized = cv2.resize(image_rgb, (width, height))
+		input_data = np.expand_dims(image_resized, axis=0)
 
-	    	# Write results to "FridgeContents.json" 
-                with open ('FridgeContents.json', 'r') as json_str
-            		FridgeNew = json.loads(json_str)
+		# Normalize pixel values if using a floating model (i.e. if model is non-quantized)
+		if floating_model:
+			input_data = (np.float32(input_data) - input_mean) / input_std
+
+		# Perform the object detection by running the model with the image as input
+		interpreter.set_tensor(input_details[0]['index'],input_data)
+		interpreter.invoke()
+
+		# Retrieve detection results
+		boxes = interpreter.get_tensor(output_details[boxes_idx]['index'])[0] # Bounding box coordinates of detected objects
+		classes = interpreter.get_tensor(output_details[classes_idx]['index'])[0] # Class index of detected objects
+		scores = interpreter.get_tensor(output_details[scores_idx]['index'])[0] # Confidence of detected objects
+
+		detections = []
+
+		# Loop over all detections and draw detection box if confidence is above minimum threshold
+		for m in range(len(scores)):
+			if ((scores[m] > min_conf_threshold) and (scores[m] <= 1.0)):
+
+				# Get bounding box coordinates and draw box
+				# Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
+				ymin = int(max(1,(boxes[m][0] * imH)))
+				xmin = int(max(1,(boxes[m][1] * imW)))
+				ymax = int(min(imH,(boxes[m][2] * imH)))
+				xmax = int(min(imW,(boxes[m][3] * imW)))
+				
+				cv2.rectangle(image, (xmin,ymin), (xmax,ymax), (10, 255, 0), 2)
+
+				# Draw label
+				object_name = labels[int(classes[m])] # Look up object name from "labels" array using class index
+				label = '%s: %d%%' % (object_name, int(scores[m]*100)) # Example: 'person: 72%'
+				labelSize, baseLine = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2) # Get font size
+				label_ymin = max(ymin, labelSize[1] + 10) # Make sure not to draw label too close to top of window
+				cv2.rectangle(image, (xmin, label_ymin-labelSize[1]-10), (xmin+labelSize[0], label_ymin+baseLine-10), (255, 255, 255), cv2.FILLED) # Draw white box to put label text in
+				cv2.putText(image, label, (xmin, label_ymin-7), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2) # Draw label text
+				centerx=((xmax-xmin)/2)
+				centery=((ymax-ymin)/2)
+
+				detections.append([object_name, centerx, centery, scores[m], xmin, ymin, xmax, ymax])
+
+		# Save the labeled image to results folder
+		if save_results:
+			# Get filenames and paths
+			image_fn ="image.jpg" 
+			image_savepath = os.path.join(CWD_PATH,RESULTS_DIR,image_fn)
+			
+			base_fn, ext = os.path.splitext(image_fn)
+			txt_result_fn = base_fn+'.txt'
+			txt_savepath = os.path.join(CWD_PATH,RESULTS_DIR,txt_result_fn)
+
+			# Save image
+			cv2.imwrite(image_savepath, image)
+			with open(txt_savepath,'w') as f:
+				for detection in detections:
+					f.write('%s %d %d %.4f %d %d %d %d\n' % (detection[0], detection[1], detection[2], detection[3], detection[4], detection[5],detection[6],detection[7]))        
+			
+			FridgeOld=FridgeNew.copy()
+			FridgeNew.clear()
+			listcompare(FridgeOld, FridgeNew, detections, var, ExpirationDays)
+
+		# Write results to "FridgeContents.json" 
+			with open ('FridgeContents.json', 'w') as file:
+				json.dump(FridgeNew,file)
                 	
 # Clean up
 cv2.destroyAllWindows()
