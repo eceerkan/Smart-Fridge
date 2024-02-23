@@ -258,6 +258,6 @@ while True:
 		# Write results to "FridgeContents.json" 
 			with open ('FridgeContents.json', 'w') as file:
 				json.dump(FridgeNew,file)
-                	
+        
 # Clean up
 cv2.destroyAllWindows()
